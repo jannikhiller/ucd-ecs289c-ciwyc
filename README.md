@@ -37,3 +37,5 @@ python3 src/while_parsing.py -h
 Tests
 -----
 To run tests call pytest in the project root (admittedly the test converage is bad).
+
+The LaTeX report sources are preserved in [docs/report-source](docs/report-source/), including the revised report in `final_revised.tex`.

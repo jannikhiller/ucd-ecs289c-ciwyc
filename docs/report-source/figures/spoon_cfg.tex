@@ -1,0 +1,12 @@
+\enlargethispage{100cm}
+\enlargethispage{100cm}
+\begin{tikzpicture}[node distance=2cm]
+  \node (start) [circle, draw] {Start};
+  \node (main) [ellipse, draw, below of=start] {main Method};
+  \node (statement) [ellipse, draw, below of=main, align=center] {java.lang.System.out.println("Hello World!");};
+  \node (end) [circle, draw, below of=statement] {End};
+  
+  \draw [->] (start) -- (main);
+  \draw [->] (main) -- (statement);
+  \draw [->] (statement) -- (end);
+\end{tikzpicture}

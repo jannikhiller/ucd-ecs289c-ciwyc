@@ -1,0 +1,214 @@
+\documentclass[sigconf,natbib=false]{acmart}
+\input{preamble.tex}
+\begin{document}
+\title{ Methods of Handling\\State Space Explosion in Model Checking}
+\input{authors}
+
+
+
+\maketitle
+\section{Introduction}
+Initially, model checking algorithms stored their transition systems using explicit representations (e.g., adjacency lists)\cite{clarke201425}. This approach quickly became problematic, as many real-world problems suffer from state space explosion. For example, figure \ref{fig:2nested} shows a program where 685 distinct states are reachable in 50 steps.
+\begin{figure}
+    \centering
+    \begin{minted}{text}
+    INPUT x
+    INPUT y
+    WHILE a < x DO
+      a := a + 1
+      WHILE b < y DO
+        b := b + 1
+      END WHILE
+    END WHILE
+    \end{minted}
+    \caption{WHILE program with two nested loops. 685 distinct states are reachable in 50 steps.}
+    \label{fig:2nested}
+\end{figure}
+Whereas with the code in figure \ref{fig:3nested}, there are already 3535 reachable states. In this case, the size of the transition system is exponential in the size of the program.
+\begin{figure}
+    \centering
+    \begin{minted}{text}
+    INPUT x
+    INPUT y
+    INPUT z
+    WHILE a < x DO
+      a := a + 1
+      WHILE b < y DO
+        b := b + 1
+        WHILE c < z DO
+          c := c + 1
+        END WHILE
+      END WHILE
+    END WHILE
+\end{minted}
+    \caption{WHILE program with three nested loops. 3535 distinct states are reachable in 50 steps.}
+    \label{fig:3nested}
+\end{figure}
+
+To address this problem, symbolic representations of the transition system are used. The SAT/SMT approach introduces variables representing possible states and constrains them to be adjacent using a transition relation formula \( T \). The size of this formula is not exponential because each line of the program only needs a single conjunction in \( T \). This conjunction groups all transitions (with all possible variable values) from one code location to the next.
+
+In this project, I explore two ways of creating such a transition relation. It is based on the following papers:
+\begin{enumerate}
+\item \textit{Symbolic model checking without BDDs} \cite{biere1999symbolic}. This paper uses propositional logic to represent transition systems, which can then be checked with SAT solvers.
+\item \textit{SMT-Based Bounded Model Checking for Embedded ANSI-C Software} \cite{cordeiro2011smt}. This paper uses a subset of first-order logic to represent transition systems and utilizes SMT solvers.
+\end{enumerate}
+
+\subsection{Overview of Project Files}
+
+\begin{itemize}
+\item \textbf{while\_parsing.py}: Implements a parser and a runtime for the WHILE programming language. The parser translates WHILE code into GOTO-like code to simplify the SAT/SMT encoding.
+\item \textbf{transition\_system.py}: Directly unrolls WHILE programs, storing the entire (exponential) transition system. This is used for testing and investigating the growth of these systems.
+\item \textbf{transition\_relation.py}: Creates a Z3 formula for the transition relation, irrespective of the chosen encoding. The SAT/SMT specific parts are factored out into separate files.
+\item \textbf{smt.py}: Contains SMT-specific code, primarily a wrapper for z3.Int and mappings from WHILE operators to Z3 functions.
+\item \textbf{sat.py}: Contains SAT-specific code, which is more complex. It uses a tuple of z3.Bools as the base type and implements encodings for "+" and binary comparison operators using bit operations ("bitblasting").
+\item \textbf{compare\_encodings.py}: Driver code to display (and optionally save) encodings of WHILE programs.
+\end{itemize}
+
+
+
+\section{WHILE Programming Language}
+The WHILE programming language used in this project is a simple language similar to other WHILE languages. It operates exclusively on integers, and supports all basic arithmetic operations. Figure \ref{fig:while_grammar} shows its EBNF grammar and Figure \ref{fig:example_while_fibonacci} shows an example program.
+
+\begin{figure}
+    \centering
+    \begin{minted}[linenos=0, xleftmargin=0pt]{text}
+        var = (* any string without whitespace that does not
+                 start with a number, keyword, or operator *);
+                 
+        expression = op, " ", {var | int}
+                   | (var | int), " ", infix_op, " ",
+                     (var | int);
+                   
+        comment = "\n" | "//", {char - "\n"}, "\n";
+                
+        statement = var, " := ", expression, "\n"
+                  | "IF ", expression, " THEN\n",
+                    while_program,
+                    ["ELSE\n", while_program],
+                    "END IF\n"
+                  | "WHILE ", expression, " DO\n",
+                    while_program, "END WHILE\n"
+                  | "INPUT ", var
+                  | "OUTPUT ", expression
+                  | comment;
+                  
+        while_program = {statement};
+    \end{minted}
+    \caption{EBNF Grammar of WHILE}
+    \label{fig:while_grammar}
+\end{figure}
+
+The WHILE language translates into a GOTO-like language with the following instructions:\\
+\py{"SET_VAR", "JUMP_IF_NOT", "JUMP", "INPUT", "OUTPUT"}
+
+\subsection{Interactive Shell Mode}
+The language also supports an interactive shell mode. This is achieved by making everything lazy evaluated using Python's generator functions.
+
+\subsection{Variable Naming Restrictions}
+For SMT/SAT encoding, only lower-case letter variable names are supported.
+
+\begin{figure}
+    \centering
+    \begin{minted}{text}
+    INPUT l
+    a := 0
+    b := 1
+    WHILE a < l DO
+      OUTPUT a
+      t := b
+      b := a + b
+      a := t
+    END WHILE
+    \end{minted}
+    \caption{Example WHILE program that outputs the Fibonacci sequence up to a limit \( l \).}
+    \label{fig:example_while_fibonacci}
+\end{figure}
+
+
+\section{SMT Encoding}
+The transition relation \( T \) is created by iterating over all locations in the GOTO code and constraining two state variables to conform to the transition of the code location. For example, the statement \texttt{5: a := a + 5} with the state variables \( x \) and \( y \) becomes:
+\[
+x_{\text{loc}} = 5 \wedge y_{\text{loc}} = 6 \wedge x_a + 5 = y_a \wedge x_b = y_b \wedge \ldots
+\]
+
+If a variable is set by user input, its value is unknown. This is encoded using an additional boolean value. To correctly handle cases with an unknown variable in other expressions, multiple conjunctions are returned per location in the code.
+
+To obtain the complete formula, the disjunction of all the returned conjunctions is taken.
+
+\section{SAT Encoding}
+The SAT encoding works on the same principle as the SMT encoding, but instead of using integer variables, it uses a vector of bits to represent the value of a variable. This approach significantly increases the complexity, as constraints on the value of a variable need to be expressed at the bit level. Additionally, each operator must be implemented individually, as opposed to using pre-defined Z3 functions. To manage the scope of the project, only addition and binary comparisons were implemented.
+
+\subsection{Addition}
+For addition, an additional bitvector holding the carry bits is created. Each result bit is constrained to be the XOR of the bits of the summands and the corresponding bit of the carry bitvector. This ensures the correct propagation of carry bits throughout the addition.
+
+\subsection{Less-than Comparison}
+For the less-than comparison, a disjunction of the following conditions is taken: for each bit \( i \), all bits larger than \( i \) are equal, and the \( i \)-th bit of the left-hand side (lhs) is smaller than the \( i \)-th bit of the right-hand side (rhs). The other comparisons are based on the less-than operator.
+
+
+\begin{figure}
+    \centering
+    \begin{minted}{text}
+    INPUT x
+    IF x >= 0 THEN
+        y := x
+    ELSE
+        y := -1 * x
+    END IF
+    OUTPUT y
+    \end{minted}
+    \caption{Absolute value program.}
+    \label{fig:abs_value}
+\end{figure}
+
+
+\section{Findings}
+\begin{table*}
+    \centering
+    \caption{Comparison of Direct Unrolling, SMT, and SAT Encodings}
+    \label{table}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        & Direct unrolling (50 steps) & SMT & SAT \\
+        \hline
+        Lines of code & 186 & 214 + 56 SMT specific & 214 + 110 SAT specific \\
+        AST nodes / states I & 3535 & 4048 & 43942 \\
+        AST nodes / states II & 59 & 2840 & 29724 \\
+        AST nodes / states III & 7 & 1847 & not supported \\
+        \hline
+    \end{tabular}
+\end{table*}
+I evaluated the encodings on the following metrics:
+\begin{itemize}
+    \item Implementation difficulty, measured in Lines of Code.
+    \item Encoding size, measured in AST nodes.
+\end{itemize}
+
+For this, I created encodings of the following programs:
+\begin{enumerate}[I]
+    \item 3 nested while loops (Figure \ref{fig:3nested})
+    \item The Fibonacci sequence (Figure \ref{fig:example_while_fibonacci}).
+    \item A absolute value function (Figure \ref{fig:abs_value})
+\end{enumerate}
+
+
+Table \ref{table} shows the results. Out of interest, the number of reachable transitions with direct unrolling for 50 steps is added. It should be noted that this is not comparable, as the other encodings represent the whole transition system. For some of the WHILE programs, if we unrolled transition systems directly until, for example, all states with 16-bit variable values are reached, all the memory in the world would not be enough.
+
+
+\subsection{Discussion}
+The SAT encoding is roughly a factor of 10 larger than the SMT encoding. I expected this factor to be at least 16 because for every integer variable in the SMT encoding, there are 16 boolean variables in the SAT encoding. The smaller factor can likely be attributed to there being more nodes than expected higher up in the AST.
+
+In terms of implementation difficulty, SAT is considerably more challenging. It should also be noted that the lines of code do not reflect that only a few operators have been implemented for SAT, whereas almost all WHILE operators work in SMT.
+
+It is noteworthy that the encodings for program I are much larger than for program II despite their similar size. My explanation for this is that because of the nested WHILE loops, program I contains more \texttt{JUMP\_IF\_NOT} instructions. These result in four conjunctions when creating the encoding.
+
+For program III, direct unrolling found all possible states (which are limited, as \( x \) is unknown).
+
+
+
+
+
+\printbibliography
+\end{document}
+\endinput
+%%
+%% End of file `sample-sigconf-biblatex.tex'.

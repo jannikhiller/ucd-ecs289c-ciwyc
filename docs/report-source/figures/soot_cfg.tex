@@ -1,0 +1,12 @@
+\enlargethispage{100cm}
+\enlargethispage{100cm}
+\begin{tikzpicture}[node distance=2cm]
+  \node (start) [ellipse, draw] {r1 := @parameter0: java.lang.String[]};
+  \node (main) [ellipse, draw, below of=start] {r0 = <java.lang.System: java.io.PrintStream out>};
+  \node (statement) [ellipse, draw, below of=main, align=center] {PrintStream:(\"Hello World\")};
+  \node (end) [ellipse, draw, below of=statement] {return};
+  
+  \draw [->] (start) -- (main);
+  \draw [->] (main) -- (statement);
+  \draw [->] (statement) -- (end);
+\end{tikzpicture}

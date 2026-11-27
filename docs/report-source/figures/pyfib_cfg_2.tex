@@ -1,0 +1,123 @@
+
+\enlargethispage{100cm}
+% Start of code
+% \begin{tikzpicture}[anchor=mid,>=latex',line join=bevel,]
+\begin{tikzpicture}[>=latex',line join=bevel,scale=0.5]
+  \pgfsetlinewidth{1bp}
+%%
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (240.87bp,11.5bp) node {fib\_staticfg};
+\end{scope}
+\begin{scope}
+  \pgfsetstrokecolor{black}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (301.73bp,102.0bp) -- (301.73bp,432.87bp) -- (473.73bp,432.87bp) -- (473.73bp,102.0bp) -- cycle;
+  \draw (387.73bp,421.37bp) node {fib};
+\end{scope}
+  \pgfsetcolor{black}
+  % Edge: 3 -> 4
+  \draw [->] (373.73bp,365.65bp) .. controls (373.73bp,351.89bp) and (373.73bp,332.34bp)  .. (373.73bp,306.11bp);
+  % Edge: 4 -> 5
+  \draw [->] (369.28bp,269.8bp) .. controls (366.27bp,258.16bp) and (362.23bp,242.55bp)  .. (356.18bp,219.18bp);
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (380.73bp,244.5bp) node {True};
+  % Edge: 5 -> 7
+  \draw [->] (360.26bp,183.17bp) .. controls (364.5bp,174.81bp) and (369.73bp,164.51bp)  .. (379.01bp,146.2bp);
+  % Edge: 7 -> 4
+  \draw [->] (394.52bp,146.3bp) .. controls (403.01bp,170.66bp) and (414.94bp,216.1bp)  .. (401.73bp,252.0bp) .. controls (400.42bp,255.57bp) and (398.59bp,259.05bp)  .. (390.44bp,270.58bp);
+  % Edge: 1 -> 1_calls
+  \draw [->,dashed] (76.11bp,356.97bp) .. controls (72.847bp,344.21bp) and (68.916bp,328.83bp)  .. (63.135bp,306.22bp);
+  \draw (88.231bp,331.5bp) node {calls};
+  % Edge: 1 -> 9
+  \draw [->] (112.35bp,358.7bp) .. controls (129.85bp,344.41bp) and (151.9bp,326.41bp)  .. (177.28bp,305.7bp);
+  % Edge: 9 -> 11
+  \draw [->] (180.93bp,270.15bp) .. controls (176.54bp,264.77bp) and (172.31bp,258.51bp)  .. (169.73bp,252.0bp) .. controls (166.94bp,244.96bp) and (165.58bp,236.93bp)  .. (164.65bp,219.23bp);
+  \draw (204.73bp,244.5bp) node {range(10)};
+  % Edge: 10 -> 9
+  \draw [->] (223.87bp,146.09bp) .. controls (236.99bp,170.58bp) and (256.3bp,216.62bp)  .. (239.73bp,252.0bp) .. controls (237.78bp,256.17bp) and (235.05bp,260.02bp)  .. (224.55bp,270.61bp);
+  % Edge: 10 -> 10_calls
+  \draw [->,dashed] (213.73bp,109.8bp) .. controls (213.73bp,98.163bp) and (213.73bp,82.548bp)  .. (213.73bp,59.175bp);
+  \draw (230.23bp,84.5bp) node {calls};
+  % Edge: 11 -> 10
+  \draw [->] (177.11bp,183.17bp) .. controls (182.88bp,174.63bp) and (190.02bp,164.08bp)  .. (202.1bp,146.2bp);
+  % Node: 3
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (373.73bp,383.87bp) ellipse (59.29bp and 18.0bp);
+  \draw (373.73bp,383.87bp) node {a, b = 0, 1};
+\end{scope}
+  % Node: 4
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (373.73bp,288.0bp) ellipse (63.09bp and 18.0bp);
+  \draw (373.73bp,288.0bp) node {while True:};
+\end{scope}
+  % Node: 5
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (351.73bp,201.0bp) ellipse (41.69bp and 18.0bp);
+  \draw (351.73bp,201.0bp) node {yield a};
+\end{scope}
+  % Node: 7
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (387.73bp,128.0bp) ellipse (77.99bp and 18.0bp);
+  \draw (387.73bp,128.0bp) node {a, b = b, a + b};
+\end{scope}
+  % Node: 1
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (82.73bp,383.87bp) ellipse (82.96bp and 26.74bp);
+  \draw (82.73bp,387.67bp) node {def fib():...};
+  \draw (82.73bp,372.67bp) node {fib\_gen = fib()};
+\end{scope}
+  % Node: 1_calls
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (85.73bp,306.0bp) -- (31.73bp,306.0bp) -- (31.73bp,270.0bp) -- (85.73bp,270.0bp) -- cycle;
+  \draw (58.731bp,288.0bp) node {fib};
+\end{scope}
+  % Node: 9
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (197.73bp,288.0bp) ellipse (94.48bp and 18.0bp);
+  \draw (197.73bp,288.0bp) node {for \_ in range(10):};
+\end{scope}
+  % Node: 11
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (165.73bp,201.0bp) ellipse (60.39bp and 18.0bp);
+  \draw (165.73bp,201.0bp) node {extra node};
+\end{scope}
+  % Node: 10
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (213.73bp,128.0bp) ellipse (71.49bp and 18.0bp);
+  \draw (213.73bp,128.0bp) node {next(fib\_gen)};
+\end{scope}
+  % Node: 10_calls
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (240.73bp,59.0bp) -- (186.73bp,59.0bp) -- (186.73bp,23.0bp) -- (240.73bp,23.0bp) -- cycle;
+  \draw (213.73bp,41.0bp) node {next};
+\end{scope}
+%
+\end{tikzpicture}
+% End of code
+
+
+
